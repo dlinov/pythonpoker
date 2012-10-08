@@ -8,9 +8,9 @@ class table:
 		self.open_cards = []
 		self.players = []
 		self.bank = 0
-		self.s_blind = 1	# small blind money value
-		self.b_blind = 2	# big blind money value
-		self.blind_indices = {'small': 0, 'big': 1}	# blind player indices
+		self.s_blind = 2							# small blind money value
+		self.b_blind = 4							# big blind money value
+		self.blinds = {'small': None, 'big': None}	# blind player indices
 
 	def take_new_deck(self):
 		self.deck = cards.deck()
@@ -21,43 +21,62 @@ class table:
 	def add_player(self, player):
 		self.players.append(player)
 
-	def move_blinds(self):
-		# choosing of small blind
-		while int(self.players[self.blind_indices['small']].money) < self.s_blind:
-			print('DEBUG: ' + self.players.pop(self.blind_indices['small']).name + ' was deleted as (s)he hasn\'t enough money to be the small blind')			
-			if self.blind_indices['small'] == len(self.players):
-				self.blind_indices['small'] = 0
+	def next_player_for(self, player):
+		'''Returns next player for another one. If he doesn't exist in the collection, returns first element if collection'''
+		n = len(self.players)
+		if n < 1:
+			raise
 
-		self.blind_indices['big'] = self.blind_indices['small'] + 1
-		print('DEBUG: After choosing small blind blinds are: ' + str(self.blind_indices))
+		index = 0
+		if player in self.players:
+			index = (self.players.index(player) + 1) % n
+
+		return self.players[index]
+
+	# should it raise exception when len(self.players) < 2?
+	def move_blinds(self):
+		old_sb = self.blinds['small']
+
+		# search of players with non-positive balance
+		players_to_remove = list(filter(lambda p: p.money <= 0, self.players))
+		print('DEBUG: players with non-positive balance: {}'.format(players_to_remove))
+
+		# removing invalid players
+		for p in players_to_remove:
+			# if current SB player hasn't money, move SB to the next position
+			if self.blinds['small'] == p:
+				self.blinds['small'] = self.next_player_for(p)
+
+			self.players.remove(p)
+
+		print('DEBUG: players after filtering: {}'.format(self.players))
+
+		# choosing of small blind
+		# if SB hasn't moved during filtering
+		if old_sb == self.blinds['small']:
+			self.blinds['small'] = self.next_player_for(self.blinds['small'])
 
 		# choosing of big blind
-		while int(self.players[self.blind_indices['big']].money) < self.b_blind:
-			if self.blind_indices['big'] == self.blind_indices['small']:
-				# may be check for one player and infinite loop
-				self.blind_indices['big'] = (self.blind_indices['big'] + 1) % len(self.players)
-			else:
-				print('DEBUG: ' + self.players.pop(self.blind_indices['big']).name + ' was deleted as (s)he hasn\'t enough money to be the big blind')
-				if self.blind_indices['small'] > self.blind_indices['big']:
-					# test!
-					self.blind_indices['small'] += 1
-				if self.blind_indices['big'] == len(self.players):
-					self.blind_indices['big'] = 0
+		self.blinds['big'] = self.next_player_for(self.blinds['small'])
 
-		print('DEBUG: Small blind is: ' + self.players[self.blind_indices['small']].name)
-		print('DEBUG: Big blind is: ' + self.players[self.blind_indices['big']].name)
+		print('DEBUG: Small blind is: {}'.format(self.blinds['small']))
+		print('DEBUG: Big blind is: ' + self.blinds['big'].name)
 
-
+	# TODO: check rules what happens when player has less money then needed for his blind
 	def take_blinds(self):
 		if len(self.players) < 2:
 			print('DEBUG: add more players')
 			return # raise
 		else:
-			self.players[self.blind_indices['small']].money -= self.s_blind
-			self.players[self.blind_indices['big']].money -= self.b_blind
-			self.bank = self.s_blind + self.b_blind
+			small_part = self.s_blind if self.blinds['small'].money >= self.s_blind else self.blinds['small'].money
+			big_part = self.b_blind if self.blinds['big'].money >= self.b_blind else self.blinds['big'].money
+
+			self.blinds['small'].money -= small_part
+			self.blinds['big'].money -= big_part
+			self.bank = small_part + big_part
 
 	def trade(self):
+		# TODO: filter
 		for p in self.players:
 			if not p.fold:
 				decision = p.decide()	# need o transfer more information
@@ -85,19 +104,25 @@ class table:
 		print('Round winner(s): {0}'.format(winners))
 
 		winners_count = len(winners)
+		# TODO: check rules what happens when winning is fractional number
+		winning = self.bank // winners_count
 		for w in winners:
-			w.money += self.bank / winners_count
+			w.money += winning
 		self.bank = 0
+
+		for p in self.players:
+			print('{}: {}'.format(p.name, p.money))
 
 
 def choose_winners(players, river):
-	intermediate_winners = [players[0]]
-	intermediate_hand = recognize_hand(intermediate_winners[0].cards, river)
+	intermediate_winners = []
+	intermediate_hand = (-1, None)	# (combination, high card)
 
-	for p in players[1:]:	# comparing all player hands to intermediate best hand
+	for p in players:	# comparing all player hands
 		current_hand = recognize_hand(p.cards, river)
+		print('{}\'s hand power: {}'.format(p, current_hand))
 		if current_hand > intermediate_hand:	
-			intermediate_winners = list(p)
+			intermediate_winners = [p]
 			intermediate_hand = current_hand
 		elif current_hand == intermediate_hand:
 			intermediate_winners.append(p)
@@ -139,33 +164,36 @@ def recognize_hand(hand, river):
 
 	return (combination, high_card)
 
-def check_royal_flash(cards):
+def check_royal_flash(card_set):
 	pass
 
-def check_4_of_a_kind(cards):
+def check_4_of_a_kind(card_set):
 	pass
 
-def check_full_house(cards):
+def check_full_house(card_set):
+	'''three of a kind + pair'''
 	pass
 
-def check_flush(cards):
+def check_flush(card_set):
+	'''5 or more cards of the same suit'''
+	suits = [card.suit for card in card_set]
+
+	for suit in cards.suits:
+		n = len(list(filter(lambda s: s == suit, suits)))
+		if n >= 5:
+			return True
+
+	return False
 	pass
 
-def check_straight(cards):
+def check_straight(card_set):
 	pass
 
-def check_3_of_a_kind(cards):
+def check_3_of_a_kind(card_set):
 	pass
 
-def check_2_pairs(cards):
+def check_2_pairs(card_set):
 	pass
 
-def check_pair(cards):
+def check_pair(card_set):
 	pass
-
-
-
-
-
-
-		
