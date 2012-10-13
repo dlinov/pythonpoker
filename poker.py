@@ -136,43 +136,62 @@ def recognize_hand(hand, river):
 	# number of combination. Higher is better. Royal flush is 8, high card is 0
 	combination = 8
 
-	# check_* functions return high card of combination or None if there is no desired combination
-	high_card = check_royal_flash(cards)
-	if not high_card:
+	# check_[name of combination] functions return combination order
+	# and 
+	# combination cards set or None if there is no desired combination
+	best_hand = check_straight_flash(cards)
+	if not best_hand:
 		combination -= 1 								# 7
-		high_card = check_4_of_a_kind(cards)
-		if not high_card:
+		best_hand = check_4_of_a_kind(cards)
+		if not best_hand:
 			combination -= 1							# 6
-			high_card = check_full_house(cards)
-			if not high_card:
+			best_hand = check_full_house(cards)
+			if not best_hand:
 				combination -= 1						# 5
-				high_card = check_flush(cards)
-				if not high_card:
+				best_hand = check_flush(cards)
+				if not best_hand:
 					combination -= 1					# 4
-					high_card = check_straight(cards)
-					if not high_card:
+					best_hand = check_straight(cards)
+					if not best_hand:
 						combination -= 1				# 3
-						high_card = check_3_of_a_kind(cards)
-						if not high_card:
+						best_hand = check_three_of_a_kind(cards)
+						if not best_hand:
 							combination -= 1			# 2
-							high_card = check_2_pairs(cards)
-							if not high_card:
+							best_hand = check_two_pairs(cards)
+							if not best_hand:
 								combination -= 1		# 1
-								high_card = check_pair(cards)
-								if not high_card:
+								best_hand = check_pair(cards)
+								if not best_hand:
 									combination -= 1	# 0
 
-	return (combination, high_card)
+	return (combination, best_hand)
 
-def check_royal_flash(card_set):
-	pass
+def check_straight_flash(card_set):
+	return None
 
 def check_4_of_a_kind(card_set):
-	pass
+	values = [card.val for card in card_set]
+
+	for val in cards.values:
+		res_hand = list(filter(lambda v: v == val, values))
+		n = len(res_hand)
+		if n >= 4:
+			return True
+	return None
 
 def check_full_house(card_set):
 	'''three of a kind + pair'''
-	pass
+	three = check_three_of_a_kind(card_set)
+
+	if three:
+		new_card_set = list(card_set)
+		# for item in three:
+		# 	new_card_set.remove(item)
+		# pair = check_pair(new_card_set)
+		# TODO: return other values
+		# return True if pair else None
+		
+	return None
 
 def check_flush(card_set):
 	'''5 or more cards of the same suit'''
@@ -182,18 +201,51 @@ def check_flush(card_set):
 		n = len(list(filter(lambda s: s == suit, suits)))
 		if n >= 5:
 			return True
-
-	return False
-	pass
+	return None
 
 def check_straight(card_set):
-	pass
+	'''5 cards in a row by value'''
+	values = [card.val for card in card_set]
+	check_list = list(cards.values)
+	check_list.insert(0, 'A')
+	n = 0
 
-def check_3_of_a_kind(card_set):
-	pass
+	for item in check_list:
+		if item in values:
+			n += 1
+			if (n >= 5):
+				return True
+		else:
+			n = 0
 
-def check_2_pairs(card_set):
-	pass
+	return None
+
+def check_three_of_a_kind(card_set):
+	'''3 cards of the same value'''
+	values = [card.val for card in card_set]
+
+	for val in cards.values:
+		n = len(list(filter(lambda v: v == val, values)))
+		if n >= 3:
+			return True
+	return None
+
+def check_two_pairs(card_set):
+	'''2 pairs'''
+	values = [card.val for card in card_set]
+	pairs_number = 0;
+	for val in cards.values:
+		n = len(list(filter(lambda v: v == val, values)))
+		if n >= 2:
+			pairs_number += 1
+	return pairs_number >= 2
 
 def check_pair(card_set):
-	pass
+	'''one pair'''
+	values = [card.val for card in card_set]
+
+	for val in cards.values:
+		n = len(list(filter(lambda v: v == val, values)))
+		if n >= 2:
+			return True
+	return None
