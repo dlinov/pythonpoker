@@ -1,4 +1,4 @@
-import random
+﻿import random
 
 # clubs = '♣'
 # diamonds = '♦'
@@ -45,4 +45,4 @@ class deck:
 		if len(self.cards) == 0:
 			return None
 		else:
-			return self.cards.pop() # pops last elem in sequence. pop(0) may be more demonstrative
+			return self.cards.pop() # pops last elem in sequence. 
