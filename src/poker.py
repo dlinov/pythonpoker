@@ -111,12 +111,12 @@ class table:
 	def finish_round(self):
 		# choose round winner
 		winners = choose_winners(self.players, self.open_cards)
-		print('Round winner(s): {0}'.format(winners))
 
 		winners_count = len(winners)
 		if winners_count > 0:
 			# TODO: check rules what happens when winning is fractional number
 			winning = self.bank // winners_count
+			print('Round winner(s): {}. Each won: {}'.format(winners, winning))
 			for w in winners:
 				w.money += winning
 		else:
