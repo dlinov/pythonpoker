@@ -77,10 +77,20 @@ class table:
 
 	def trade(self):
 		# TODO: filter
-		for p in self.players:
-			if not p.fold:
-				decision = p.decide()	# need o transfer more information
-				print(p.name + '\'s decision: ' + str(decision))
+		###
+		filtered_players = list(filter(lambda p: not p.fold, self.players))
+		if len(filtered_players) > 1:
+			for p in filtered_players:
+				if not p.fold:
+					decision = p.decide()	# need to transfer more information	
+					word = decision[0]
+					if word == 'fold':			
+						p.fold = True
+					if word == 'all-in':
+						self.bank += p.money
+						p.money = 0
+					###/
+					print(p.name + '\'s decision: ' + str(decision))
 
 	def show_flop(self):
 		for i in range(1, 4):
@@ -104,10 +114,13 @@ class table:
 		print('Round winner(s): {0}'.format(winners))
 
 		winners_count = len(winners)
-		# TODO: check rules what happens when winning is fractional number
-		winning = self.bank // winners_count
-		for w in winners:
-			w.money += winning
+		if winners_count > 0:
+			# TODO: check rules what happens when winning is fractional number
+			winning = self.bank // winners_count
+			for w in winners:
+				w.money += winning
+		else:
+			print('No winner. Improve strategies :)')		
 		self.bank = 0
 
 		for p in self.players:
@@ -117,15 +130,17 @@ class table:
 def choose_winners(players, river):
 	intermediate_winners = []
 	intermediate_hand = (-1, None)	# (combination, high card)
+	print('DEBUG: choosing winners. Number of active players: {}'.format(len(list(filter(lambda p: not p.fold, players)))))
 
 	for p in players:	# comparing all player hands
-		current_hand = recognize_hand(p.cards, river)
-		print('{}\'s hand power: {}'.format(p, current_hand))
-		if current_hand > intermediate_hand:	
-			intermediate_winners = [p]
-			intermediate_hand = current_hand
-		elif current_hand == intermediate_hand:
-			intermediate_winners.append(p)
+		if not p.fold:
+			current_hand = recognize_hand(p.cards, river)
+			print('{}\'s hand power: {}'.format(p, current_hand))
+			if current_hand > intermediate_hand:	
+				intermediate_winners = [p]
+				intermediate_hand = current_hand
+			elif current_hand == intermediate_hand:
+				intermediate_winners.append(p)
 
 	return intermediate_winners
 

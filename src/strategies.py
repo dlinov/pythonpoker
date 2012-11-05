@@ -35,5 +35,9 @@ class random_strategy:
 		self.name = 'random'
 
 	def decide(self, cards):
-		return (random.choice(responses), 10)	# temporary action
+		decision = random.choice(responses)
+		# we don't want to go all-in too frequently
+		if (decision == 'all-in'):
+			decision = random.choice(responses)
+		return (decision, 10)	# temporary action
 		
