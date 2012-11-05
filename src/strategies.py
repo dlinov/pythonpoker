@@ -6,12 +6,13 @@ random_ = 2
 
 responses = ['raise', 'call', 'check', 'fold', 'all-in']
 
+# TODO: rename to 'get'
 def get_strategy(strategy):
-	if strategy == basic_:
+	if strategy == basic_ or strategy == 'basic':
 		return basic_strategy()
-	elif strategy == advanced_:
+	elif strategy == advanced_ or strategy == 'advanced':
 		return advanced_strategy()
-	elif strategy == random_:
+	elif strategy == random_ or strategy == 'random':
 		return random_strategy()
 	else:
 		return basic_strategy()

@@ -126,7 +126,6 @@ class table:
 		for p in self.players:
 			print('{}: {}'.format(p.name, p.money))
 
-
 def choose_winners(players, river):
 	intermediate_winners = []
 	intermediate_hand = (-1, None)	# (combination, high card)
