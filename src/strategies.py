@@ -21,6 +21,9 @@ class basic_strategy:
 	def __init__(self):
 		self.name = 'basic'
 
+	def __repr__(self):
+		return self.name
+
 	def decide(self, cards):
 		return ('check', 0)	# temporary action
 
@@ -28,12 +31,18 @@ class advanced_strategy:
 	def __init__(self):
 		self.name = 'advanced'
 
+	def __repr__(self):
+		return self.name
+
 	def decide(self, cards):
 		return ('raise', 50)	# temporary action
 
 class random_strategy:
 	def __init__(self):
 		self.name = 'random'
+
+	def __repr__(self):
+		return self.name
 
 	def decide(self, cards):
 		decision = random.choice(responses)

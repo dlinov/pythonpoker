@@ -10,7 +10,11 @@ def get(output_class):
 # TODO: create new source file for each class
 class output_console:
 	def __init__(self):
+		self.__name__ = 'console output'
 		pass
+
+	def __repr__(self):
+		return self.__name__
 	
 	# TODO: implement
 	def out(self):

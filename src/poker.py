@@ -1,6 +1,17 @@
 import random
 import cards
 import players
+from collections import namedtuple
+
+# game_start - the very beginning of the game - we need to know names and start amount of money
+# nocards - no one has cards
+# preflop - everyone has two cards
+# flop - three cards are opened
+# turn - four cards are opened
+# river - five cards are opened
+# showdown - opening player's cards
+_s = namedtuple('stages', ['game_start', 'nocards', 'preflop', 'flop', 'turn', 'river', 'showdown', 'game_over'])
+stages = _s('game start', 'no cards', 'preflop', 'flop', 'turn', 'river', 'showdown', 'game over')
 
 class table:
 	def __init__(self):
@@ -125,6 +136,21 @@ class table:
 
 		for p in self.players:
 			print('{}: {}'.format(p.name, p.money))
+
+class game_state:
+
+	def __init__(self):
+		# is needed only to remember fields
+		self.player = None
+		self.table_cards = []
+		self.opponents = []
+		self.stage = stages.game_start
+
+	def round_reset(self):
+		self.player = player(self.player.name, self.player.cards)
+		# TODO: update opponents
+		self.table_cards = []
+		self.stage = 'nocards'
 
 def choose_winners(players, river):
 	intermediate_winners = []

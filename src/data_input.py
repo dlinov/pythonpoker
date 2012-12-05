@@ -1,7 +1,12 @@
 import cards
-from game_state import game_state
+import players
+import poker
 
 def get(input_class):
+	"""
+	source_kind can be 'console', 'gui'
+	output_kind can be 'console', 'gui'
+	"""
 	print('{} selected as input'.format(input_class))
 	if input_class == 'console':
 		return input_console()
@@ -11,63 +16,67 @@ def get(input_class):
 # TODO: create new source file for each class
 class input_console:
 	def __init__(self):
-		self.reset_state_game()
+		pass
 
-	def reset_state_round(self):
-		self.state.round_reset()
+	def __repr__(self):
+		return 'console input'
 
-	def reset_state_game(self):
-		self.state = game_state()
+	def reset_state_round(self, game_state):
+		game_state.round_reset()
 
-	def get_state(self):
-		if self.state.stage == 'start_game':
-			# here we need to enter players number and start money
-			self.process_start_game()
-			pass
-		if self.state.stage == 'nocards':
+	def reset_state_game(self, game_state):
+		game_state = game_state()
+
+	def get_state(self, game_state):
+		if game_state.stage == poker.stages.game_start:
+			# here we need to define player details, opponents number and start money
+			self.process_start_game(game_state)
+		elif game_state.stage == poker.stages.nocards:
 			# here we need to enter two player's cards
-			self.process_nocards()
-			pass
-		elif self.state.stage == 'preflop':
-			pass
-		elif self.state.stage == 'flop':
-			pass
-		elif self.state.stage == 'turn':
-			pass
-		elif self.state.stage == 'river':
-			pass
-		elif self.state.stage == 'showdown':
-			pass
+			self.process_nocards(game_state)
+		elif game_state.stage == poker.stages.preflop:
+			game_state.stage = poker.stages.game_over
+		elif game_state.stage == poker.stages.flop:
+			game_state.stage = poker.stages.game_over
+		elif game_state.stage == poker.stages.turn:
+			game_state.stage = poker.stages.game_over
+		elif game_state.stage == poker.stages.river:
+			game_state.stage = poker.stages.game_over
+		elif game_state.stage == poker.stages.showdown:
+			game_state.stage = poker.stages.game_over
 		else:
 			print('ERROR: stage not recognized')
 
-		return self.state
-
 	def get_card(self):
 		''' input format - [value, suit], e.g. "2H" or "AD" '''
-		card_code = input('Enter card:')
-		suit = filter(lambda s: s[0] == card_code.to_lower()[1], cards.suits)
-		value = card_code[0]
-		return card(suit, value)
+		try:
+			card_code = input('Enter card:')
+			v_index = 1 if card_code[:2] != '10' else 2
+			# get first elem from enumeration
+			suit = next(st for st in filter(lambda s: s.startswith(str.lower(card_code[v_index:])), cards.suits) if st)
+			value = card_code[:v_index]
+			return cards.card(suit, value)
+		except:
+			print('ERROR: card input cannot be parsed')
+			return self.get_card()
 
-	def process_start_game(self):		
-		start_money = int(input('enter start amount of money: '))
-
-		num = int(input('enter opponents number: '))
+	def process_start_game(self, game_state):
+		inp = input('enter your name: ')
+		selfname = inp if inp != '' else 'Dmitry'
+		inp = input('enter start amount of money: ')
+		start_money = int(inp if inp.isdigit() else '10')
+		game_state.player = players.player(selfname, start_money, None)
+		inp = input('enter opponents number: ')
+		num = int(inp if inp.isdigit() else '1')
 		for i in range(0, num):
 			name = input('enter opponent #{0} name: '.format(i + 1))
 			# TODO: remove strategy parameter from player constructor
-			p = players.player(name, start_money, None)
-			self.state.opponents.append(p)
-		print('=== players added ===')
+			p = players.player(name if name != '' else 'enemy{}'.format(i), start_money, None)
+			print('player {} with start money = {} added'.format(p, start_money))
+			game_state.opponents.append(p)
+		game_state.stage = poker.stages.nocards
 
-	def process_nocards(self):		
-		card1 = self.get_card()
-		print(card1)
-		card2 = self.get_card()
-		print(card2)
-		self.state.player_cards.append(card1)
-		self.state.player_cards.append(card1)
-		# TODO: change for:
-		# self.state.player_cards.append(get_card())
-		# self.state.player_cards.append(get_card())
+	def process_nocards(self, game_state):
+		game_state.player.cards.append(self.get_card())
+		game_state.player.cards.append(self.get_card())
+		game_state.stage = poker.stages.preflop
