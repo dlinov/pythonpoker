@@ -35,15 +35,15 @@ class input_console:
 			# here we need to enter two player's cards
 			self.process_nocards(game_state)
 		elif game_state.stage == poker.stages.preflop:
-			game_state.stage = poker.stages.game_over
+			self.process_preflop(game_state)
 		elif game_state.stage == poker.stages.flop:
-			game_state.stage = poker.stages.game_over
+			self.process_flop(game_state)
 		elif game_state.stage == poker.stages.turn:
-			game_state.stage = poker.stages.game_over
+			self.process_turn(game_state)
 		elif game_state.stage == poker.stages.river:
-			game_state.stage = poker.stages.game_over
+			self.process_river(game_state)
 		elif game_state.stage == poker.stages.showdown:
-			game_state.stage = poker.stages.game_over
+			self.process_showdown(game_state)
 		else:
 			print('ERROR: stage not recognized')
 
@@ -80,3 +80,29 @@ class input_console:
 		game_state.player.cards.append(self.get_card())
 		game_state.player.cards.append(self.get_card())
 		game_state.stage = poker.stages.preflop
+
+	def process_preflop(self, game_state):
+		# TODO: take stakes from all players then step to flop
+		# self.input.get_stakes()
+		game_state.stage = poker.stages.game_over
+		pass
+
+	def process_flop(self, game_state):
+		# TODO: take stakes from all players then step to turn
+		game_state.stage = poker.stages.game_over
+		pass
+
+	def process_turn(self, game_state):
+		# TODO: take stakes from all players then step to river
+		game_state.stage = poker.stages.game_over
+		pass
+
+	def process_river(self, game_state):
+		# TODO: take stakes from all players then step to showdown
+		game_state.stage = poker.stages.game_over
+		pass
+
+	def process_showdown(self, game_state):
+		# TODO: take stakes from all players then start new round or end game
+		game_state.stage = poker.stages.game_over
+		pass

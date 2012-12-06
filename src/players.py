@@ -8,6 +8,7 @@ class player:
 		self.strategy = strategies.get_strategy(strategy)
 		self.cards = []
 		self.fold = False
+		self.current_stake = None
 
 	def decide(self):
 		return self.strategy.decide(self.cards)
@@ -15,6 +16,7 @@ class player:
 	def reset_state(self):
 		self.cards = []
 		self.fold = False
+		self.current_stake = None
 
 	def __str__(self):
 		return self.name
