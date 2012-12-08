@@ -1,0 +1,12 @@
+=== Захват изображения и простейшее редактирование (кадрирование, поворот)
+https://developers.google.com/appengine/docs/python
+http://ieg.ucoz.ru/publ/skrinshot_na_python/1-1-0-6
+http://www.pythonware.com/library/pil/handbook/imagegrab.htm
+
+=== Распознавание текста и т.д. (нейронные сети?)
+http://www.pybrain.org/docs/index.html
+http://habrahabr.ru/post/64535/
+http://habrahabr.ru/post/63854/
+
+=== Ведение статистики (sqlite3?)
+http://www.youtube.com/watch?v=Ll_ufNL5rDA
