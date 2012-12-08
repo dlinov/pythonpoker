@@ -138,7 +138,6 @@ class table:
 			print('{}: {}'.format(p.name, p.money))
 
 class game_state:
-
 	def __init__(self):
 		# is needed only to remember fields
 		self.player = None
@@ -146,6 +145,12 @@ class game_state:
 		self.players = []
 		self.opponents = self.get_opponents
 		self.stage = stages.game_start
+		self.small_blind = None
+		self.big_blind = None
+		self.blind = 0
+		self.last_bet_by = None
+		self.bank = 0
+		self.bank_part = 0	# amount of money, every player's part of bank to match 
 
 	def get_opponents(self):
 		opponents = list(self.players)
@@ -154,8 +159,16 @@ class game_state:
 		return opponents
 
 	def round_reset(self):
-		self.player = player(self.player.name, self.player.cards)
-		# TODO: update opponents
+		"""Resets bank, player hands and takes money from blinds"""
+		for p in self.players: p.reset_state()
+		#self.player = player(self.player.name, self.player.cards)
+		self.small_blind.money -= self.blind // 2
+		self.small_blind.stake += self.blind // 2
+		self.big_blind.money -= self.blind
+		self.big_blind.stake += self.blind
+		self.last_bet_by = self.big_blind
+		self.bank = self.blind
+		self.bank_part = self.blind
 		self.table_cards = []
 		self.stage = 'nocards'
 

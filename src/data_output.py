@@ -1,6 +1,9 @@
 import strategies
 
-def get(output_class):	
+def get(output_class):
+	"""
+	output_kind can be 'console', 'gui'
+	"""
 	print('{} selected as output'.format(output_class))
 	if output_class == 'console':
 		return output_console()
@@ -17,5 +20,7 @@ class output_console:
 		return self.__name__
 	
 	# TODO: implement
-	def out(self):
-		print('Implement decisions')
+	def do(self, actions):
+		print('DEBUG: output of decisions')
+		for a in actions:
+			print(a)

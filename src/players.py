@@ -7,7 +7,7 @@ class player:
 		self.money = int(money)
 		self.cards = []
 		# now property 'fold' is replaced by 'current_stake is None'
-		self.current_stake = 0
+		self.stake = 0
 		self.prev = prev_player
 		self.next = next_player
 
@@ -16,7 +16,7 @@ class player:
 
 	def reset_state(self):
 		self.cards = []
-		self.current_stake = 0
+		self.stake = 0
 
 	def __str__(self):
 		return self.name

@@ -1,12 +1,11 @@
 import data_io
 import strategies
-import cross_py_func as cr_func
+import cross_py_func as crf
 
-io = data_io.manager('console', 'console')
-ai = strategies.get_strategy('basic')
-print('IO: {}; AI: {}'.format(io, ai))
+io = data_io.manager('console', 'console', 'basic')
+print('IO: {}'.format(io))
 
-cr_func.readline('press return to start game:')
+crf.readline('press return to start game:')
 
 io.start()
-cr_func.readline('press return to close')
+crf.readline('press return to close')
