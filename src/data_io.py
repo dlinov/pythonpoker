@@ -1,6 +1,7 @@
-import data_input	# all inputs
-import data_output	# all outputs
-import poker		# rules, game state
+import data_input				# all inputs
+import data_output				# all outputs
+import poker					# rules, game state
+import cross_py_func as cr_func # cross-python some function implementations
 
 class manager:
 	def __init__(self, src, out):
@@ -27,3 +28,4 @@ class manager:
 		inp = self.input
 		inp.process_nocards()
 		self.is_game_active = False
+		return None

@@ -1,6 +1,7 @@
 import cards
 import players
 import poker
+import cross_py_func as cr_func
 
 def get(input_class):
 	"""
@@ -50,7 +51,7 @@ class input_console:
 	def get_card(self):
 		''' input format - [value, suit], e.g. "2H" or "AD" '''
 		try:
-			card_code = input('Enter card:')
+			card_code = cr_func.readline('Enter card:')
 			v_index = 1 if card_code[:2] != '10' else 2
 			# get first elem from enumeration
 			suit = next(st for st in filter(lambda s: s.startswith(str.lower(card_code[v_index:])), cards.suits) if st)
@@ -61,19 +62,33 @@ class input_console:
 			return self.get_card()
 
 	def process_start_game(self, game_state):
-		inp = input('enter your name: ')
-		selfname = inp if inp != '' else 'Dmitry'
-		inp = input('enter start amount of money: ')
+		# inp = input('enter your name: ')
+		# selfname = inp if inp != '' else 'Dmitry'
+		inp = cr_func.readline('enter start amount of money: ')
 		start_money = int(inp if inp.isdigit() else '10')
-		game_state.player = players.player(selfname, start_money, None)
-		inp = input('enter opponents number: ')
-		num = int(inp if inp.isdigit() else '1')
+
+		cr_func.readline('enter player number: ')
+		num = int(inp if inp.isdigit() else '2')
+		if num < 2:
+			print('WARNING: player number should be greater or equal to 2. Player is set to 2')
+			num = 2
+
+		user_flag = False
 		for i in range(0, num):
-			name = input('enter opponent #{0} name: '.format(i + 1))
-			# TODO: remove strategy parameter from player constructor
-			p = players.player(name if name != '' else 'enemy{}'.format(i), start_money, None)
-			print('player {} with start money = {} added'.format(p, start_money))
-			game_state.opponents.append(p)
+			inp = cr_func.readline('enter opponent #{0} name: '.format(i + 1))
+			name = inp if inp != '' else 'player{}'.format(i)
+			prev = game_state.players[i - 1] if i > 0 else None
+			p = players.player(name , start_money, prev, None)
+			if not user_flag:
+				inp = cr_func.readline('enter "+" if this player is you: ')
+				user_flag = inp == '+'
+				if user_flag:
+					game_state.player = p
+			if prev:
+				prev.next = p
+			game_state.players.append(p)
+			print('player "{}" with start money = {} added'.format(p, start_money))
+			
 		game_state.stage = poker.stages.nocards
 
 	def process_nocards(self, game_state):

@@ -143,8 +143,15 @@ class game_state:
 		# is needed only to remember fields
 		self.player = None
 		self.table_cards = []
-		self.opponents = []
+		self.players = []
+		self.opponents = self.get_opponents
 		self.stage = stages.game_start
+
+	def get_opponents(self):
+		opponents = list(self.players)
+		if self.player in self.players:
+			opponents.remove(self.player)
+		return opponents
 
 	def round_reset(self):
 		self.player = player(self.player.name, self.player.cards)

@@ -2,21 +2,21 @@ import strategies
 import cards
 
 class player:
-	def __init__(self, name, money, strategy):
+	def __init__(self, name, money, prev_player, next_player):
 		self.name = name
 		self.money = int(money)
-		self.strategy = strategies.get_strategy(strategy)
 		self.cards = []
-		self.fold = False
-		self.current_stake = None
+		# now property 'fold' is replaced by 'current_stake is None'
+		self.current_stake = 0
+		self.prev = prev_player
+		self.next = next_player
 
-	def decide(self):
-		return self.strategy.decide(self.cards)
+	# def decide(self):
+	# 	return self.strategy.decide(self.cards)
 
 	def reset_state(self):
 		self.cards = []
-		self.fold = False
-		self.current_stake = None
+		self.current_stake = 0
 
 	def __str__(self):
 		return self.name
