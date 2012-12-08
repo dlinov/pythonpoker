@@ -159,32 +159,34 @@ class input_console:
 
 	def process_flop(self, game_state):
 		# TODO: take stakes from all players then step to turn
-		game_state.table_cards.append(self.get_card())
-		game_state.table_cards.append(self.get_card())
-		game_state.table_cards.append(self.get_card())
-		print('DEBUG: table on flop: {}'.format(game_state.table_cards))
+		if (len(game_state.table_cards) != 3):
+			game_state.table_cards.append(self.get_card())
+			game_state.table_cards.append(self.get_card())
+			game_state.table_cards.append(self.get_card())
+			print('DEBUG: table on flop: {}'.format(game_state.table_cards))
 		end_stage = self.get_stakes(game_state)
 		if end_stage:
 			game_state.stage = poker.stages.turn
 
 	def process_turn(self, game_state):
 		# TODO: take stakes from all players then step to river
-		game_state.table_cards.append(self.get_card())
-		print('DEBUG: table on turn: {}'.format(game_state.table_cards))
+		if (len(game_state.table_cards) != 4):
+			game_state.table_cards.append(self.get_card())
+			print('DEBUG: table on turn: {}'.format(game_state.table_cards))
 		end_stage = self.get_stakes(game_state)
 		if end_stage:
 			game_state.stage = poker.stages.river
 
 	def process_river(self, game_state):
 		# TODO: take stakes from all players then step to showdown
-		game_state.table_cards.append(self.get_card())
-		print('DEBUG: table on river: {}'.format(game_state.table_cards))
+		if (len(game_state.table_cards) != 5):
+			game_state.table_cards.append(self.get_card())
+			print('DEBUG: table on river: {}'.format(game_state.table_cards))
 		end_stage = self.get_stakes(game_state)
 		if end_stage:
 			game_state.stage = poker.stages.showdown
 
 	def process_showdown(self, game_state):
-		# TODO: take stakes from all players then start new round or end game
 		print('DEBUG: table on showdown: {}'.format(game_state.table_cards))
 		for p in game_state.players:
 			if p.stake is not None:
@@ -192,6 +194,7 @@ class input_console:
 			else:
 				print('DEBUG: {} is fold'.format(p))
 
+		# TODO: choose winner(s)
 
 		game_state.players = list(filter(lambda p: p.money > 0, game_state.players))
 		if (len(game_state.players) < 2):
