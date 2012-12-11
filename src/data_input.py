@@ -213,11 +213,19 @@ class input_gui:
 		self.path_to_cards = '..\\img\\cards'
 		self.path_to_test = '..\\img\\test'
 		self.path_to_markers = '..\\img\\markers'
+		self.path_to_buttons = '..\\img\\buttons'
 
 	def __repr__(self):
 		return 'graphic input'
 
 	def get_state(self, game_state):
+		# Remember player pos (l/r)
+		# try to recognize 7 cards
+		# found 2 - preflop
+		# found 5 - flop
+		# found 6 - turn
+		# found 7 - river or showdown
+		# recognize 'fold' button - if recognized, we call AI for decision
 		if game_state.stage == poker.stages.game_start:
 			# here we need to define player details, opponents number and start money
 			self.process_start_game(game_state)
@@ -251,19 +259,24 @@ class input_gui:
 
 	def get_card(self, offset):
 		result = None
-		while not result:
-			try:
-				x1, y1, x2, y2 = self.marker + offset
-				card_code = imf.get_card((x1 + x2, y1 + y2))
-				#card_code = crf.readline('Enter card: ')
-				v_index = 1 if card_code[:2] != '10' else 2
-				# get first elem from enumeration
-				suit = next(st for st in filter(lambda s: s.startswith(str.lower(card_code[v_index:])), cards.suits) if st)
-				value = card_code[:v_index]
-				result = cards.card(suit, value)
-			except:
-				print('ERROR: card input cannot be parsed')
+		try:
+			x1, y1, x2, y2 = self.marker + offset
+			card_code = imf.get_card((x1 + x2, y1 + y2))
+			#card_code = crf.readline('Enter card: ')
+			v_index = 1 if card_code[:2] != '10' else 2
+			# get first elem from enumeration
+			suit = next(st for st in filter(lambda s: s.startswith(str.lower(card_code[v_index:])), cards.suits) if st)
+			value = card_code[:v_index]
+			result = cards.card(suit, value)
+		except:
+			print('ERROR: card input cannot be parsed')
 		return result
+
+	def contains_button(self, button_text, offset):
+		path = os.path.join(self.path_to_buttons, button_text + '.png')
+		x1, y1, x2, y2 = self.marker + offset
+		return imf.contains_button(path, (x1 + x2, y1 + y2))
+
 
 	#def get_stakes(self, game_state):
 	#	"""universal method to get stakes at various round stages"""
@@ -328,6 +341,14 @@ class input_gui:
 		print(card5)
 		card6 = self.get_card((425, 175))
 		print(card6)
+		card7 = self.get_card((479, 175))
+		print(card7)
+		card8 = self.get_card((672, 170))
+		print(card8)
+		card9 = self.get_card((687, 174))
+		print(card9)
+		print(self.contains_button('fold', (378, 480)))
+		print(self.contains_button('check', (514, 480)))
 		#endregion
 		# TODO: remove hardcode
 		game_state.blind = 2

@@ -34,6 +34,9 @@ def get_marker_location(path):
 		raise IOError()
 
 def get_card(location):
+	"""
+	Gets card from specified location
+	"""
 	scr = get_screenshot()
 	x, y = location
 	card = scr.crop((x, y, x + 12, y + 30))
@@ -41,10 +44,21 @@ def get_card(location):
 		if check_equal(card, card_images[i]):
 			return os.path.split(os.path.splitext(card_sample_files[i])[0])[1]
 
+def contains_button(img_path, location):
+	"""
+	Checks if screen contains button
+	"""
+	scr = get_screenshot()
+	x, y = location	
+	img = Image.open(img_path)
+	w, h = img.size
+	elem = scr.crop((x, y, x + w, y + h))
+	return check_equal(img, elem)
+
 
 
 path_to_cards = '..\\img\\cards'
-#path_to_test = '..\\img\\test'
+path_to_test = '..\\img\\test'
 #path_to_markers = '..\\img\\markers'
 
 #print(get_marker_location())
