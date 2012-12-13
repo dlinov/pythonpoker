@@ -1,10 +1,12 @@
 import cards
 import players
 import poker
+from settings import settings
 import cross_py_func as crf
 import img_func as imf
 import threading
 import os
+import json
 
 def get(input_class):
 	"""
@@ -210,10 +212,7 @@ class input_console:
 
 class input_gui:
 	def __init__(self):
-		self.path_to_cards = '..\\img\\cards'
-		self.path_to_test = '..\\img\\test'
-		self.path_to_markers = '..\\img\\markers'
-		self.path_to_buttons = '..\\img\\buttons'
+		s = settings()
 
 	def __repr__(self):
 		return 'graphic input'
@@ -262,9 +261,7 @@ class input_gui:
 		try:
 			x1, y1, x2, y2 = self.marker + offset
 			card_code = imf.get_card((x1 + x2, y1 + y2))
-			#card_code = crf.readline('Enter card: ')
 			v_index = 1 if card_code[:2] != '10' else 2
-			# get first elem from enumeration
 			suit = next(st for st in filter(lambda s: s.startswith(str.lower(card_code[v_index:])), cards.suits) if st)
 			value = card_code[:v_index]
 			result = cards.card(suit, value)
@@ -277,6 +274,8 @@ class input_gui:
 		x1, y1, x2, y2 = self.marker + offset
 		return imf.contains_button(path, (x1 + x2, y1 + y2))
 
+	def contains_elem(self, sample):
+		return imf.contains_elem(sample, None)
 
 	#def get_stakes(self, game_state):
 	#	"""universal method to get stakes at various round stages"""
@@ -328,28 +327,6 @@ class input_gui:
 
 	def process_start_game(self, game_state):
 		self.get_marker_location()
-		#region test
-		card1 = self.get_card((46, 169))
-		print(card1)
-		card2 = self.get_card((61, 173))
-		print(card2)
-		card3 = self.get_card((263, 175))
-		print(card3)
-		card4 = self.get_card((317, 175))
-		print(card4)
-		card5 = self.get_card((371, 175))
-		print(card5)
-		card6 = self.get_card((425, 175))
-		print(card6)
-		card7 = self.get_card((479, 175))
-		print(card7)
-		card8 = self.get_card((672, 170))
-		print(card8)
-		card9 = self.get_card((687, 174))
-		print(card9)
-		print(self.contains_button('fold', (378, 480)))
-		print(self.contains_button('check', (514, 480)))
-		#endregion
 		# TODO: remove hardcode
 		game_state.blind = 2
 
