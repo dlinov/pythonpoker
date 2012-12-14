@@ -19,9 +19,9 @@ class manager:
 			print('=== game is starting ===')
 			while self.game_state.stage is not poker.stages.game_over:
 				print('DEBUG: current stage is: {}'.format(self.game_state.stage))
-				self.input.get_state(self.game_state)		# receive current state
-				actions = self.ai.decide(self.game_state)	# process it with AI
-				self.output.do(actions)						# react
+				self.input.get_state(self.game_state)		# receive current game state
+				actions = self.ai.decide(self.game_state)	# make decision
+				self.output.do(actions)						# act
 			print('=== game finished ===')
 		else:
 			print('You should finish current game to start a new one')

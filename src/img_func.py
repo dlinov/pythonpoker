@@ -126,14 +126,17 @@ def ocr_char(im):
 	for ocr_value, ocr_item in ocr_images.iteritems():
 		if ocr_item.size >= im.size:
 			ocr_w, ocr_h = ocr_item.size
-			for x in xrange(0, ocr_w - im_w + 1):
-				for y in xrange(0, ocr_h - im_h + 1):
-					ocr_part = ocr_item.crop((x, y, x + im_w, y + im_h))
-					# now equality test goes perfect, but maybe we should choose the closest match (the smallest bbox)
-					if check_equal(im, ocr_part):
-						return ocr_value.split('_')[0]
-					#result = check_equal(im, ocr_part)
-					#ocr_part.save(os.path.join(path_to_test, 'ocr_{}_{}_{}_left.png'.format(result, x, y)))
+			# we should compare only items with close sizes
+			#if ocr_w / im_w < 1.5 and ocr_w - im_w < 2 or ocr_h / im_h < 1.5 and ocr_h - im_h < 2:
+			if im_w > 0: # a bit dirty hack against false positives
+				for x in xrange(0, ocr_w - im_w + 1):
+					for y in xrange(0, ocr_h - im_h + 1):
+						ocr_part = ocr_item.crop((x, y, x + im_w, y + im_h))
+						# now equality test goes perfect, but maybe we should choose the closest match (the smallest bbox)
+						if check_equal(im, ocr_part):
+							return ocr_value.split('_')[0]
+						#result = check_equal(im, ocr_part)
+						#ocr_part.save(os.path.join(path_to_test, 'ocr_{}_{}_{}_left.png'.format(result, x, y)))
 
 def ocr(im):
 	im = posterize_wb(im)

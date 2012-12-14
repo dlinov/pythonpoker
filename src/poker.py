@@ -170,7 +170,7 @@ class game_state:
 		self.bank = self.blind
 		self.bank_part = self.blind
 		self.table_cards = []
-		self.stage = 'nocards'
+		self.stage = stages.nocards
 
 def choose_winners(players, river):
 	intermediate_winners = []
