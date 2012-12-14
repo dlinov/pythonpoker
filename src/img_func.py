@@ -8,12 +8,6 @@ from PIL import ImageOps
 import cv2
 import numpy as np
 
-def get_imlist(path, ext):
-	return [os.path.join(path, f) for f in os.listdir(path) if f.endswith(ext)]
-	
-def get_screenshot():
-	return ImageGrab.grab()
-
 def pil2cv(pil_img):
 	pil_image = pil_img.convert('RGB') 
 	open_cv_image = np.array(pil_image) 
@@ -21,10 +15,16 @@ def pil2cv(pil_img):
 	return open_cv_image[:, :, ::-1].copy()
 
 def check_equal(im1, im2):
-	bbox = ImageChops.difference(im1, im2).getbbox()
-	print bbox
-	return bbox is None
-	#return ImageChops.difference(im1, im2).getbbox() is None
+	#bbox = ImageChops.difference(im1, im2).getbbox()
+	#print bbox
+	#return bbox is None
+	return ImageChops.difference(im1, im2).getbbox() is None
+
+def get_imlist(path, ext):
+	return [os.path.join(path, f) for f in os.listdir(path) if f.endswith(ext)]
+	
+def get_screenshot():
+	return ImageGrab.grab()
 
 def get_marker_location(path):
 	scr = pil2cv(get_screenshot())
@@ -96,11 +96,13 @@ def posterize_wb(image):
 	return image
 
 def find_regions(im):
+	"""
+	Returns areas for ocr
+	"""
 	regions = {}
-	width, height  = im_left.size
+	width, height  = im.size
 	region_width = 0
 	n_regions = 0
-	im = im_left
 	# from left to the right
 	for xi in xrange(0, width):
 		# from top to the bottom
@@ -117,6 +119,8 @@ def find_regions(im):
 				region_width = 0
 				n_regions += 1
 
+	return regions
+
 def ocr_char(im):
 	im_w, im_h = im.size
 	for ocr_value, ocr_item in ocr_images.iteritems():
@@ -127,56 +131,63 @@ def ocr_char(im):
 					ocr_part = ocr_item.crop((x, y, x + im_w, y + im_h))
 					# now equality test goes perfect, but maybe we should choose the closest match (the smallest bbox)
 					if check_equal(im, ocr_part):
-						return ocr_value
+						return ocr_value.split('_')[0]
 					#result = check_equal(im, ocr_part)
 					#ocr_part.save(os.path.join(path_to_test, 'ocr_{}_{}_{}_left.png'.format(result, x, y)))
 
-def ocr(regions):
-	if regions:	
-		''.join([ocr_char(im.crop(regions[r])) for r in regions])
-	else:
-		None
+def ocr(im):
+	im = posterize_wb(im)
+	im.save(os.path.join(path_to_test, 'area.png'))
+	regions = find_regions(im)
+	if regions:
+		# join all not-None characters (well recognized)
+		return ''.join(filter(lambda x: x, [ocr_char(im.crop(regions[r])) for r in regions]))
 	#print(r, ocr_val)
 	#imx.save(os.path.join(path_to_test, '{}_left_money_region.png'.format(r)))
 
 def get_filename(path):
 	return os.path.split(os.path.splitext(path)[0])[1]
-	
+
+# TODO: change to class fields
+path_to_buttons = '..\\img\\buttons'
 path_to_cards = '..\\img\\cards'
 path_to_test = '..\\img\\test'
 path_to_ocr = '..\\img\\ocr'
 path_to_markers = '..\\img\\markers'
 
+buttons_list = get_imlist(path_to_buttons, 'png')
 card_sample_files = get_imlist(path_to_cards, 'png')
 card_ocr_files = get_imlist(path_to_ocr, 'png')
+
+button_images = {get_filename(f): Image.open(f) for f in buttons_list}
 card_images = [Image.open(f) for f in card_sample_files]
 ocr_images = {get_filename(f): posterize_wb(Image.open(f).convert('L')) for f in card_ocr_files}
 
-scr = get_screenshot()
-x0, y0 = get_marker_location(os.path.join(path_to_markers, 'hand_16_40.png'))
-x1_left, y1_left, x2_left, y2_left = offset_left
-x1_right, y1_right, x2_right, y2_right = offset_right
-money_left = scr.crop((x1_left + x0, y1_left + y0, x2_left + x0, y2_left + y0))
-money_right = scr.crop((x1_right + x0, y1_right + y0, x2_right + x0, y2_right + y0))
-money_left.save(os.path.join(path_to_test, 'left_money.png'))
-money_right.save(os.path.join(path_to_test, 'right_money.png'))
-im_left = posterize_wb(money_left)
-im_right = posterize_wb(money_right)
-im_left.save(os.path.join(path_to_test, 'left_money_wb.png'))
-im_right.save(os.path.join(path_to_test, 'right_money_wb.png'))
-im_left.save(os.path.join(path_to_test, 'left_money_wb.png'))
-regions = find_regions(im_left)	
-str = ocr(regions)
-if str:
-	if (str[0] == '$'):
-		str = str[1:]
-	if str.isdigit():	
-		value = (int(str))
-		print(value)
-	else:
-		print('ERROR: OCR value is not digit: {}'.format(str))
-else:
-	print('ERROR: OCR cannot recognize area:')
+#scr = get_screenshot()
+#x0, y0 = get_marker_location(os.path.join(path_to_markers, 'hand_16_40.png'))
+#x1_left, y1_left, x2_left, y2_left = offset_left
+#x1_right, y1_right, x2_right, y2_right = offset_right
+#money_left = scr.crop((x1_left + x0, y1_left + y0, x2_left + x0, y2_left + y0))
+#money_right = scr.crop((x1_right + x0, y1_right + y0, x2_right + x0, y2_right + y0))
+#money_left.save(os.path.join(path_to_test, 'left_money.png'))
+#money_right.save(os.path.join(path_to_test, 'right_money.png'))
+#im_left = posterize_wb(money_left)
+#im_right = posterize_wb(money_right)
+#im_left.save(os.path.join(path_to_test, 'left_money_wb.png'))
+#im_right.save(os.path.join(path_to_test, 'right_money_wb.png'))
+#im_left.save(os.path.join(path_to_test, 'left_money_wb.png'))
+#regions = find_regions(im_left)	
+#str = ocr(regions)
+#if str:
+#	if (str[0] == '$'):
+#		str = str[1:]
+#	if str.isdigit():	
+#		value = (int(str))
+#		print(value)
+#	else:
+#		print('ERROR: OCR value is not digit: {}'.format(str))
+#else:
+#	print('ERROR: OCR cannot recognize area:')
 
 
 

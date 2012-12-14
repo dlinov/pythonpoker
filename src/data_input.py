@@ -6,7 +6,7 @@ import cross_py_func as crf
 import img_func as imf
 import threading
 import os
-import json
+import time
 
 def get(input_class):
 	"""
@@ -212,49 +212,30 @@ class input_console:
 
 class input_gui:
 	def __init__(self):
-		s = settings()
+		self.side = None
+		self.s = settings()
 
 	def __repr__(self):
 		return 'graphic input'
-
-	def get_state(self, game_state):
-		# Remember player pos (l/r)
-		# try to recognize 7 cards
-		# found 2 - preflop
-		# found 5 - flop
-		# found 6 - turn
-		# found 7 - river or showdown
-		# recognize 'fold' button - if recognized, we call AI for decision
-		if game_state.stage == poker.stages.game_start:
-			# here we need to define player details, opponents number and start money
-			self.process_start_game(game_state)
-		elif game_state.stage == poker.stages.nocards:
-			# here we need to enter two player's cards
-			self.process_nocards(game_state)
-		elif game_state.stage == poker.stages.preflop:
-			self.process_preflop(game_state)
-		elif game_state.stage == poker.stages.flop:
-			self.process_flop(game_state)
-		elif game_state.stage == poker.stages.turn:
-			self.process_turn(game_state)
-		elif game_state.stage == poker.stages.river:
-			self.process_river(game_state)
-		elif game_state.stage == poker.stages.showdown:
-			self.process_showdown(game_state)
-		else:
-			print('ERROR: stage not recognized')
-
-	def get_marker_location(self):
-		path = os.path.join(self.path_to_markers, 'hand_16_40.png')
-		# TODO: call it several times
-		self.marker = imf.get_marker_location(path)
-		print('Marker supposed to be at {}'.format(self.marker))
 
 	def reset_state_round(self, game_state):
 		game_state.round_reset()
 
 	def reset_state_game(self, game_state):
 		game_state = game_state()
+
+	#def contains_button(self, button_text, offset):
+	#	path = os.path.join(self.path_to_buttons, button_text + '.png')
+	#	x1, y1, x2, y2 = self.marker + offset
+	#	return imf.contains_button(path, (x1 + x2, y1 + y2))
+
+	#def contains_elem(self, sample):
+	#	return imf.contains_elem(sample, None)	
+
+	def get_marker_location(self):
+		path = os.path.join(self.s.path_to_markers, self.s.marker_main_name)
+		self.marker = imf.get_marker_location(path)
+		print('Marker supposed to be at {}'.format(self.marker))
 
 	def get_card(self, offset):
 		result = None
@@ -266,110 +247,147 @@ class input_gui:
 			value = card_code[:v_index]
 			result = cards.card(suit, value)
 		except:
-			print('ERROR: card input cannot be parsed')
+			#print('ERROR: card input cannot be parsed')
+			pass
 		return result
 
-	def contains_button(self, button_text, offset):
-		path = os.path.join(self.path_to_buttons, button_text + '.png')
-		x1, y1, x2, y2 = self.marker + offset
-		return imf.contains_button(path, (x1 + x2, y1 + y2))
+	def get_bank(self):
+		x0, y0 = self.marker
+		x1, y1, x2, y2 = self.s.bank_offset
+		area = imf.get_screenshot().crop((x0 + x1, y0 + y1, x0 + x2, y0 + y2))
+		str = imf.ocr(area).replace('$', '')
+		if str and str.isdigit():
+			return int(str)
 
-	def contains_elem(self, sample):
-		return imf.contains_elem(sample, None)
+	def get_stakes(self, game_state):
+		"""universal method to get stakes at various round stages"""
+		new_player_money = self.get_money(self.player_money_offset)
+		new_opponent_money = self.get_money(self.opp_money_offset)
 
-	#def get_stakes(self, game_state):
-	#	"""universal method to get stakes at various round stages"""
-	#	# get players who has bet less than needed
-	#	without_stake = list(filter(lambda p: p.stake < game_state.bank_part, filter(lambda y: y, game_state.players)))
+		diff_player = game_state.player.money - new_player_money
+		diff_opp = game_state.opponents()[0].money - new_opponent_money
 
-	#	cycle_label = game_state.last_bet_by.next
-	#	current = cycle_label
+		game_state.player.money = new_player_money
+		game_state.player.stake += diff_player
+		game_state.opponents()[0].money = new_opponent_money
+		game_state.opponents()[0].stake += diff_opp
 
-	#	while current.next is not cycle_label:			
-	#		# if current player is not fold
-	#		if current.stake >= 0:
-	#			game_state.last_bet_by = current
-	#			if current is game_state.player:
-	#				# return process game state				
-	#				return
-	#			else:
-	#				# get other players' stakes
-	#					d = crf.readline("Enter {}'s decision (f[old], c[heck/all], r[aise]/b[et], a[ll-in]: ".format(current)) 
-	#					if d.startswith('f'):
-	#						current.stake = None
-	#					elif d.startswith('c'):
-	#						# check or call - autocall if you can't check
-	#						diff = game_state.bank_part - current.stake
-	#						current.money -= diff
-	#						current.stake += diff
-	#					elif d.startswith('r') or d.startswith('b'):
-	#						# raise or bet
-	#						# by default, bet is equal to blind + difference between required and current bank_part
-	#						# may be the 2nd input for stake should be implemented
-	#						diff = current.money - (game_state.bank_part - current.stake + game_state.blind)
-	#						if (diff < 0):
-	#							print("WARNING: get_stakes, diff is less than zero. Maybe it's all-in player")
-	#						else:
-	#							bet = game_state.blind if diff >= game_state.blind else diff
-	#							game_state.bank_part += bet
-	#							cycle_label = current	# cycle starts_again
-	#					elif d.startswith('a'):
-	#						# all-in
-	#						diff = current.money - (game_state.bank_part - current.stake)
-	#						current.money = 0
-	#						game_state.bank_part += diff
-	#					else:
-	#						print('ERROR: wrong input')
-	#		else:
-	#			print('DEBUG: {} is fold'.format(current))
-	#		current = current.next
-	#	return True	
+		game_state.bank = self.get_bank()
+
+	def get_money(self, rectangle):
+		rect = ()
+		for i in xrange(0, len(rectangle)):
+			rect += (rectangle[i] + self.marker[i % 2], )
+		area = imf.get_screenshot().crop(rect)
+		str = imf.ocr(area)
+		#print('Recognized area: {}'.format(str))
+		if (str and str.isdigit()):
+			return int(str)
+
+	def recognize_table_cards(self):
+		cards = []
+		for offset in self.s.table_cards_pos:
+			c = self.get_card(offset)
+			if c:
+				cards.append(c)
+			else:
+				break;
+		return cards
+
+	def wait_for_decision(self):
+		fold_im = imf.button_images['fold']
+		x1, y1, x2, y2, x3, y3 = self.marker + self.s.buttons['fold'] + fold_im.size
+		while not imf.check_equal(fold_im, imf.get_screenshot().crop((x1 + x2, y1 + y2, x1 + x2 + x3, y1 + y2 + y3))):
+			#test
+			scr = imf.get_screenshot().crop((x1 + x2, y1 + y2, x1 + x2 + x3, y1 + y2 + y3))		
+			scr.save(os.path.join(self.s.path_to_test, 'fold_area.png'))
+			#end test
+			time.sleep(0.47)
+		print('fold available')
+
+	def get_state(self, game_state):
+		if game_state.stage == poker.stages.game_start:
+			self.process_start_game(game_state)
+		else:
+			game_state.table_cards = self.recognize_table_cards()
+			n_table_cards = len(game_state.table_cards)
+			if n_table_cards == 3:
+				game_state.stage = poker.stages.flop
+			elif n_table_cards == 4:
+				game_state.stage = poker.stages.turn
+			elif n_table_cards == 5:
+				if game_state.stage == poker.stages.turn:
+					game_state.stage = poker.stages.river
+
+			# recognize 'fold' button - if recognized, we call AI for decision
+			self.wait_for_decision()
+			self.get_stakes(game_state)
+
+			if game_state.stage == poker.stages.nocards:
+				self.process_nocards(game_state)
+			elif game_state.stage == poker.stages.preflop:
+				self.process_preflop(game_state)
+			#elif game_state.stage == poker.stages.flop:
+			#	self.process_flop(game_state)
+			#elif game_state.stage == poker.stages.turn:
+			#	self.process_turn(game_state)
+			#elif game_state.stage == poker.stages.river:
+			#	self.process_river(game_state)
+			elif game_state.stage == poker.stages.showdown:
+				self.process_showdown(game_state)
+			else:
+				print('ERROR: stage not recognized')
 
 	def process_start_game(self, game_state):
+		"""
+		Here we need to define player details, opponents number, start money,
+		remember player pos (l/r)
+		"""
 		self.get_marker_location()
-		# TODO: remove hardcode
-		game_state.blind = 2
+		print('marker pos: {}'.format(self.marker))
+		#game_state.blind = self.get_blind_amount()
 
+		left_player = players.player('Left', 0, None, None)
+		right_player = players.player('Right', 0, left_player, left_player)
+		left_player.next = left_player.prev = right_player		
+		game_state.players.append(left_player)
+		game_state.players.append(right_player)
+		game_state.blind = 0
+		game_state.small_blind = left_player
+		game_state.big_blind = right_player
+
+		left = None
+		right = None
+		while bool(left) == bool(right):
+			left = self.get_card(self.s.player0_cards_pos[0])
+			right = self.get_card(self.s.player1_cards_pos[0])
+			time.sleep(0.2)
+		
+		if right:
+			self.side = 'R'
+			self.player_cards_offset = self.s.player1_cards_pos
+			self.player_money_offset = self.s.player1_bank_offset
+			self.opp_money_offset = self.s.player0_bank_offset
+			game_state.player = right_player
+		else:
+			self.side = 'L'
+			self.player_cards_offset = self.s.player0_cards_pos
+			self.player_money_offset = self.s.player0_bank_offset
+			self.opp_money_offset = self.s.player1_bank_offset
+			game_state.player = left_player
+
+		print('player pos: {}'.format(self.side))
+		left_player.money = self.get_money(self.s.player0_bank_offset)
+		print('left money: {}'.format(left_player.money))
+		right_player.money = self.get_money(self.s.player1_bank_offset)
+		print('right money: {}'.format(right_player.money))
 		game_state.stage = poker.stages.nocards
-
-	#inp = crf.readline('enter start amount of money: ')
-	#start_money = int(inp if inp.isdigit() else '100')
-	#inp = crf.readline('enter blind: ')
-	#game_state.blind = int(inp if inp.isdigit() else '10')
-
-	#inp = crf.readline('enter player number: ')
-	#num = int(inp if inp.isdigit() else '2')
-	#if num < 2:
-	#	print('WARNING: player number should be greater or equal to 2. Player is set to 2')
-	#	num = 2
-
-	#user_flag = False
-	#for i in range(0, num):
-	#	inp = crf.readline('enter opponent #{0} name: '.format(i + 1))
-	#	name = inp if inp != '' else 'player{}'.format(i)
-	#	prev = game_state.players[i - 1] if i > 0 else None
-	#	p = players.player(name , start_money, prev, None)
-	#	if not user_flag:
-	#		inp = crf.readline('enter "+" if this player is you: ')
-	#		user_flag = inp == '+'
-	#		if user_flag:
-	#			game_state.player = p
-	#	if prev:
-	#		prev.next = p
-	#	game_state.players.append(p)
-	#	print('player "{}" with start money = {} added'.format(p, start_money))
-
-	#game_state.players[0].prev = game_state.players[-1]
-	#game_state.players[-1].next = game_state.players[0]
-
-	#game_state.small_blind = game_state.players[0]
-	#game_state.big_blind = game_state.players[1]
-	#game_state.stage = poker.stages.nocards
 
 	def process_nocards(self, game_state):
 		game_state.round_reset()
-		while (len(game_state.player.cards) < 2):
-			game_state.player.cards.append(self.get_card())
+		for i in range(0, 2):
+			game_state.player.cards.append(self.get_card(self.player_cards_offset[i]))
+
 		game_state.stage = poker.stages.preflop
 
 	def process_preflop(self, game_state):
