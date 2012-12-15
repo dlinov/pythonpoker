@@ -1,7 +1,7 @@
 import cards
 import players
 import poker
-from settings import settings
+from settings import Settings
 import cross_py_func as crf
 import img_func as imf
 import threading
@@ -213,7 +213,7 @@ class input_console:
 class input_gui:
 	def __init__(self):
 		self.side = None
-		self.s = settings()
+		self.s = Settings()
 
 	def __repr__(self):
 		return 'graphic input'

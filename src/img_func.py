@@ -64,26 +64,10 @@ def contains_elem(sample, region):
 	If region = None whole screen is checked.
 	Returns location within region or None if elem not found 
 	"""
-	#test
 	scr = get_screenshot()
 	im = scr.crop(region)
 	im.save(os.path.join(path_to_test, 'left_bank.png'))
 	return check_equal(im, sample)
-	#end test
-
-	#scr = get_screenshot()
-	#if region:
-	#	scr.crop((region))
-
-	#sample_w, sample_h = sample.size
-	#scr_sz = scr.size
-	#for xi in range(0, scr_sz[0] - sample_w):
-	#	for yi in range(0, scr_sz[1] - sample_h):
-	#		test_area = scr.crop((xi, yi, xi + sample_w, yi + sample_h))
-	#		if check_equal(sample, test_area):
-	#			return (xi, yi)
-	#	print(xi)
-	#return None
 
 def posterize_wb(image):
 	"""
@@ -165,46 +149,3 @@ card_ocr_files = get_imlist(path_to_ocr, 'png')
 button_images = {get_filename(f): Image.open(f) for f in buttons_list}
 card_images = [Image.open(f) for f in card_sample_files]
 ocr_images = {get_filename(f): posterize_wb(Image.open(f).convert('L')) for f in card_ocr_files}
-
-#scr = get_screenshot()
-#x0, y0 = get_marker_location(os.path.join(path_to_markers, 'hand_16_40.png'))
-#x1_left, y1_left, x2_left, y2_left = offset_left
-#x1_right, y1_right, x2_right, y2_right = offset_right
-#money_left = scr.crop((x1_left + x0, y1_left + y0, x2_left + x0, y2_left + y0))
-#money_right = scr.crop((x1_right + x0, y1_right + y0, x2_right + x0, y2_right + y0))
-#money_left.save(os.path.join(path_to_test, 'left_money.png'))
-#money_right.save(os.path.join(path_to_test, 'right_money.png'))
-#im_left = posterize_wb(money_left)
-#im_right = posterize_wb(money_right)
-#im_left.save(os.path.join(path_to_test, 'left_money_wb.png'))
-#im_right.save(os.path.join(path_to_test, 'right_money_wb.png'))
-#im_left.save(os.path.join(path_to_test, 'left_money_wb.png'))
-#regions = find_regions(im_left)	
-#str = ocr(regions)
-#if str:
-#	if (str[0] == '$'):
-#		str = str[1:]
-#	if str.isdigit():	
-#		value = (int(str))
-#		print(value)
-#	else:
-#		print('ERROR: OCR value is not digit: {}'.format(str))
-#else:
-#	print('ERROR: OCR cannot recognize area:')
-
-
-
-
-#print('samples found: {}'.format(len(card_sample_files)))
-##card_images = [cv2.imread(f) for f in card_sample_files]
-
-#test_image_full = Image.open('..\\img\\test\\fullscreen.png')
-#im = test_image_full.crop((62, 209, 74, 239))
-##im = test_image_full.crop((77, 213, 89, 243))
-## im.save(os.path.join(path_to_test, 'sample.png'))
-##cv_im = pil2cv(im)
-
-#for i in range(0, len(card_images)):
-#	if check_equal(im, card_images[i]):
-#		print(card_sample_files[i])
-#print('search completed')

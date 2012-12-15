@@ -23,5 +23,5 @@ class basic_processing(object):
 		if game_state.need_decision:
 			print('DEBUG: taking decision...')
 			game_state.need_decision = False
-			result.append(('check', 0))
+			result.append(('fold', 0))
 		return result
