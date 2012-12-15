@@ -21,6 +21,7 @@ class output_console:
 	
 	# TODO: implement
 	def do(self, actions):
-		print('DEBUG: output of decisions')
-		for a in actions:
-			print(a)
+		if actions:
+			print('DEBUG: output of decisions')
+			for a in actions:
+				print(a)

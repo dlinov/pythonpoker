@@ -150,7 +150,8 @@ class game_state:
 		self.blind = 0
 		self.last_bet_by = None
 		self.bank = 0
-		self.bank_part = 0	# amount of money, every player's part of bank to match 
+		self.bank_part = 0	# amount of money, every player's part of bank to match
+		self.need_decision = False
 
 	def get_opponents(self):
 		opponents = list(self.players)

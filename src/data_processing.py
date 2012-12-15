@@ -19,5 +19,9 @@ class basic_processing(object):
 
 	def decide(self, game_state):
 		# temporary action
-		print('DEBUG: taking decision...')
-		return [('check', 0)]
+		result = []
+		if game_state.need_decision:
+			print('DEBUG: taking decision...')
+			game_state.need_decision = False
+			result.append(('check', 0))
+		return result

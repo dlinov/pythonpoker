@@ -224,10 +224,10 @@ class input_gui:
 	def reset_state_game(self, game_state):
 		game_state = game_state()
 
-	#def contains_button(self, button_text, offset):
-	#	path = os.path.join(self.path_to_buttons, button_text + '.png')
-	#	x1, y1, x2, y2 = self.marker + offset
-	#	return imf.contains_button(path, (x1 + x2, y1 + y2))
+	def contains_button(self, button_text, offset):
+		path = os.path.join(self.path_to_buttons, button_text + '.png')
+		x1, y1, x2, y2 = self.marker + offset
+		return imf.contains_button(path, (x1 + x2, y1 + y2))
 
 	#def contains_elem(self, sample):
 	#	return imf.contains_elem(sample, None)	
@@ -251,6 +251,15 @@ class input_gui:
 			pass
 		return result
 
+	def get_player_cards(self):
+		hand = []
+		for i in range(0, 2):
+			p = None
+			while not p:
+				p = self.get_card(self.player_cards_offset[i])
+			hand.append(p)
+		return hand
+
 	def get_bank(self):
 		x0, y0 = self.marker
 		x1, y1, x2, y2 = self.s.bank_offset
@@ -265,7 +274,7 @@ class input_gui:
 		"""universal method to get stakes at various round stages"""
 		new_player_money = self.get_money(self.player_money_offset)
 		new_opponent_money = self.get_money(self.opp_money_offset)
-
+		
 		diff_player = game_state.player.money - new_player_money
 		diff_opp = game_state.opponents()[0].money - new_opponent_money
 
@@ -303,17 +312,23 @@ class input_gui:
 		fold_im = imf.button_images['fold']
 		x1, y1, x2, y2, x3, y3 = self.marker + self.s.buttons['fold'] + fold_im.size
 		while not imf.check_equal(fold_im, imf.get_screenshot().crop((x1 + x2, y1 + y2, x1 + x2 + x3, y1 + y2 + y3))):
-			#test
-			scr = imf.get_screenshot().crop((x1 + x2, y1 + y2, x1 + x2 + x3, y1 + y2 + y3))		
-			scr.save(os.path.join(self.s.path_to_test, 'fold_area.png'))
-			#end test
 			n_table_cards = len(self.get_table_cards())
-			if n_table_cards == 0 and len(game_state.table_cards) > 0:
+			table_changed = n_table_cards == 0 and len(game_state.table_cards) > 0
+			new_player_cards = self.get_player_cards()
+			player_cards_changed = len(new_player_cards) != len(game_state.player.cards)
+			if not player_cards_changed:
+				for i in range(0, 2):
+					if new_player_cards[i].__str__() != game_state.player.cards[i].__str__():
+						player_cards_changed = True
+						break				
+
+			if table_changed or player_cards_changed:
 				# TODO: call one method to reset round
 				game_state.stage = poker.stages.nocards
 				game_state.player.cards = []
 				break;
 			time.sleep(0.47)
+		game_state.need_decision = True
 		print('DEBUG: fold available (or round end)')
 
 	def recognize_opp_cards(self):
@@ -332,19 +347,22 @@ class input_gui:
 			game_state.table_cards = self.get_table_cards()
 			opponents_cards = self.recognize_opp_cards()
 			if len(opponents_cards) > 0:
-				game_state.stage = poker.stages.showdown
-				print('DEBUG: SHOWDOWN')
+				if game_state.stage != poker.stages.showdown:
+					game_state.stage = poker.stages.showdown
+					print('DEBUG: SHOWDOWN')
 			else:
 				n_table_cards = len(game_state.table_cards)
 
 				if n_table_cards == 0:
 					if len(game_state.player.cards) == 0:
-						game_state.stage = poker.stages.nocards
-						print('DEBUG: NO CARDS')
+						if game_state.stage != poker.stages.nocards:
+							game_state.stage = poker.stages.nocards
+							print('DEBUG: NO CARDS')
 						self.process_nocards(game_state)
 					else:
-						game_state.stage = poker.stages.preflop
-						print('DEBUG: PREFLOP')
+						if game_state.stage != poker.stages.preflop:
+							game_state.stage = poker.stages.preflop
+							print('DEBUG: PREFLOP')
 				elif n_table_cards == 3:
 					if game_state.stage != poker.stages.flop:
 						game_state.stage = poker.stages.flop
@@ -410,65 +428,6 @@ class input_gui:
 		game_state.stage = poker.stages.nocards
 
 	def process_nocards(self, game_state):
-		# Do we need reset state?
-		#game_state.round_reset()
-		for i in range(0, 2):
-			p = None
-			while not p:
-				p = self.get_card(self.player_cards_offset[i])
-			game_state.player.cards.append(p)
-			print('Player cards: {}'.format(game_state.player.cards))
+		game_state.player.cards = self.get_player_cards()
+		print('Player cards: {}'.format(game_state.player.cards))
 		game_state.stage = poker.stages.preflop
-
-	#def process_preflop(self, game_state):
-	#	# TODO: take stakes from all players then step to flop
-	#	end_stage = self.get_stakes(game_state)
-	#	if end_stage:
-	#		game_state.stage = poker.stages.flop
-
-	#def process_flop(self, game_state):
-	#	# TODO: take stakes from all players then step to turn
-	#	if (len(game_state.table_cards) != 3):
-	#		game_state.table_cards.append(self.get_card())
-	#		game_state.table_cards.append(self.get_card())
-	#		game_state.table_cards.append(self.get_card())
-	#		print('DEBUG: table on flop: {}'.format(game_state.table_cards))
-	#	end_stage = self.get_stakes(game_state)
-	#	if end_stage:
-	#		game_state.stage = poker.stages.turn
-
-	#def process_turn(self, game_state):
-	#	# TODO: take stakes from all players then step to river
-	#	if (len(game_state.table_cards) != 4):
-	#		game_state.table_cards.append(self.get_card())
-	#		print('DEBUG: table on turn: {}'.format(game_state.table_cards))
-	#	end_stage = self.get_stakes(game_state)
-	#	if end_stage:
-	#		game_state.stage = poker.stages.river
-
-	#def process_river(self, game_state):
-	#	# TODO: take stakes from all players then step to showdown
-	#	if (len(game_state.table_cards) != 5):
-	#		game_state.table_cards.append(self.get_card())
-	#		print('DEBUG: table on river: {}'.format(game_state.table_cards))
-	#	end_stage = self.get_stakes(game_state)
-	#	if end_stage:
-	#		game_state.stage = poker.stages.showdown
-
-	#def process_showdown(self, game_state):
-	#	print('DEBUG: table on showdown: {}'.format(game_state.table_cards))
-	#	for p in game_state.players:
-	#		if p.stake is not None:
-	#			print('DEBUG: {}\'s cards: {}'.format(p, p.cards))
-	#		else:
-	#			print('DEBUG: {} is fold'.format(p))
-
-	#	# TODO: choose winner(s)
-
-	#	game_state.players = list(filter(lambda p: p.money > 0, game_state.players))
-	#	if (len(game_state.players) < 2):
-	#		print('WINNER IS {}'.format(game_state.players[0]))
-	#		game_state.stage = poker.stages.game_over
-	#	else:
-	#		game_state.stage = poker.stages.nocards
-
