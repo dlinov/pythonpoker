@@ -28,12 +28,11 @@ class OutputBase:
 			print('DEBUG: output of decisions')
 			for a in actions:
 				print(a)
-				act_type = a[0]
-				if act_type == 'check' or act_type == 'call':
+				if a == 'check' or a == 'call':
 					self.check_or_call(a)
-				elif act_type == 'bet' or act_type == 'raise':
+				elif a == 'bet' or a == 'raise':
 					self.bet_or_raise(a)
-				elif act_type == 'fold':
+				elif a == 'fold':
 					self.fold()
 				else:
 					print('ERROR: action not recognized: {}'.format(a))
@@ -65,30 +64,30 @@ class OutputGui(OutputBase):
 		self.__name__ = 'gui output'
 		self.mouse = PyMouse()
 		self.s = settings.Settings()
-		self.x0, self.y0 = get_marker_location(os.path.join(self.s.path_to_markers, self.s.marker_main_name))
-		print('DEBUG: marker (in output): {}'.format((self.x0, self.y0)))
 	
 	def check_or_call(self, action):
 		x, y = self.s.buttons['check']
-		x += self.x0; y += self.y0
+		#x += self.x0; y += self.y0
 		self.move_and_click((x, y))
 
 	def bet_or_raise(self, action):		
 		x, y = self.s.buttons['raise']
-		x += self.x0; y += self.y0
+		#x += self.x0; y += self.y0
 		self.move_and_click((x, y))
 
 	def fold(self):		
 		x, y = self.s.buttons['fold']
 		print('DEBUG: fold pos: {}'.format((x, y)))
-		x += self.x0; y += self.y0
+		#x += self.x0; y += self.y0
 		print('DEBUG: absolute fold pos: {}'.format((x, y)))
 		self.move_and_click((x, y))
 
 	def move_and_click(self, pos, button = 1): 
 		"""
 		button: 1 - left; 2 - middle; 3 - right
-		"""
+		"""	
+		self.x0, self.y0 = get_marker_location(os.path.join(self.s.path_to_markers, self.s.marker_main_name))
+		print('DEBUG: marker (in output): {}'.format((self.x0, self.y0)))
 		## move to any position
 		#screen_res = self.mouse.screen_size()
 		#self.mouse.move(random.randint(0, screen_res[0]), random.randint(0, screen_res[1]))
@@ -103,7 +102,7 @@ class OutputGui(OutputBase):
 		step_time_base =  random.randint(1, 4) / 400.0
 		print('step_time_base={}'.format(step_time_base))
 		dest_x, dest_y = pos
-		dest_x += 15; dest_y += 15	# to click closer to the button centre
+		dest_x += self.x0 + 60; dest_y += self.y0 + 25	# to click closer to the button centre
 		print('dest={};{}'.format(dest_x, dest_y))
 		x0, y0 = self.mouse.position()
 		print('start={};{}'.format(x0, y0))
@@ -136,8 +135,14 @@ class OutputGui(OutputBase):
 				print('ERROR: cannot reduce deviation. Now is {}'.format(self.deviation(x, y, dest_x, dest_y)))
 				break
 
-		print('DEBUG: result = {}. deviation from given position is {}'.format((x, y), self.deviation(x, y, dest_x, dest_y)))
-		self.mouse.click(int(x), int(y), button)
+		print('DEBUG: result = {}. deviation from given position is {}'.format((x, y), self.deviation(x, y, dest_x, dest_y)))		
+		time.sleep(2.5)
+		self.mouse.move(int(dest_x), int(dest_y))
+		time.sleep(2.5)	
+		self.mouse.click(int(dest_x), int(dest_y), button)
+
+		# to prevent button highlighting
+		self.mouse.move(int(self.x0), int(self.y0))
 
 	def deviation(self, x, y, x0, y0):
 		return sqrt((x - x0) ** 2 + (y - y0) ** 2)
