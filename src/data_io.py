@@ -4,12 +4,12 @@ import data_processing			# all AI
 import poker					# rules, game state
 import cross_py_func as crf 	# cross-python function implementations
 
-class manager:
+class Manager:
 	def __init__(self, src, out, ai):
 		self.input = data_input.get(src)
 		self.output = data_output.get(out)
 		self.ai = data_processing.get(ai)
-		self.game_state = poker.game_state()
+		self.game_state = poker.GameState()
 
 	def __repr__(self):
 		return '{} - {} [AI: {}]'.format(self.input, self.output, self.ai)

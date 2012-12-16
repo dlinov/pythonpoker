@@ -13,7 +13,7 @@ from collections import namedtuple
 _s = namedtuple('stages', ['game_start', 'nocards', 'preflop', 'flop', 'turn', 'river', 'showdown', 'game_over'])
 stages = _s('game start', 'no cards', 'preflop', 'flop', 'turn', 'river', 'showdown', 'game over')
 
-class table:
+class Table:
 	def __init__(self):
 		self.deck = cards.deck()
 		self.open_cards = []
@@ -137,7 +137,7 @@ class table:
 		for p in self.players:
 			print('{}: {}'.format(p.name, p.money))
 
-class game_state:
+class GameState:
 	def __init__(self):
 		# is needed only to remember fields
 		self.player = None
@@ -152,6 +152,7 @@ class game_state:
 		self.bank = 0
 		self.bank_part = 0	# amount of money, every player's part of bank to match
 		self.need_decision = False
+		self.can_check = False
 
 	def get_opponents(self):
 		opponents = list(self.players)
@@ -254,13 +255,13 @@ def check_full_house(card_set):
 		
 	return None
 
-def check_flush(card_set):
+def check_flush(card_set, flush_len = 5):
 	'''5 or more cards of the same suit'''
 	suits = [card.suit for card in card_set]
 
 	for suit in cards.suits:
 		n = len(list(filter(lambda s: s == suit, suits)))
-		if n >= 5:
+		if n >= flush_len:
 			return True
 	return None
 

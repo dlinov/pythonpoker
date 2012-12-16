@@ -136,9 +136,9 @@ class OutputGui(OutputBase):
 				break
 
 		print('DEBUG: result = {}. deviation from given position is {}'.format((x, y), self.deviation(x, y, dest_x, dest_y)))		
-		time.sleep(2.5)
+		time.sleep(1.5)
 		self.mouse.move(int(dest_x), int(dest_y))
-		time.sleep(2.5)	
+		time.sleep(0.5)	
 		self.mouse.click(int(dest_x), int(dest_y), button)
 
 		# to prevent button highlighting

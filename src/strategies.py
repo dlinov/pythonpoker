@@ -9,15 +9,15 @@ responses = ['raise', 'call', 'check', 'fold', 'all-in']
 # TODO: rename to 'get'
 def get_strategy(strategy):
 	if strategy == basic_ or strategy == 'basic':
-		return basic_strategy()
+		return BasicStrategy()
 	elif strategy == advanced_ or strategy == 'advanced':
-		return advanced_strategy()
+		return AdvancedStrategy()
 	elif strategy == random_ or strategy == 'random':
-		return random_strategy()
+		return RandomStrategy()
 	else:
-		return basic_strategy()
+		return BasicStrategy()
 
-class basic_strategy:
+class BasicStrategy:
 	def __init__(self):
 		self.name = 'basic'
 
@@ -27,7 +27,7 @@ class basic_strategy:
 	def decide(self, cards):
 		return ('check', 0)	# temporary action
 
-class advanced_strategy:
+class AdvancedStrategy:
 	def __init__(self):
 		self.name = 'advanced'
 
@@ -37,7 +37,7 @@ class advanced_strategy:
 	def decide(self, cards):
 		return ('raise', 50)	# temporary action
 
-class random_strategy:
+class RandomStrategy:
 	def __init__(self):
 		self.name = 'random'
 

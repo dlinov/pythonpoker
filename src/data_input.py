@@ -14,14 +14,14 @@ def get(input_class):
 	"""
 	print('{} selected as input'.format(input_class))
 	if input_class == 'console':
-		return input_console()
+		return InputConsole()
 	if input_class == 'gui':
-		return input_gui()
+		return InputGui()
 	else:
 		print("{}-input hasn't implemented yet".format(input_class))
 
 # TODO: create new source file for each class
-class input_console:
+class InputConsole:
 	def __init__(self):
 		pass
 
@@ -64,7 +64,7 @@ class input_console:
 				# get first elem from enumeration
 				suit = next(st for st in filter(lambda s: s.startswith(str.lower(card_code[v_index:])), cards.suits) if st)
 				value = card_code[:v_index]
-				result = cards.card(suit, value)
+				result = cards.Card(suit, value)
 			except:
 				print('ERROR: card input cannot be parsed')
 		return result
@@ -134,7 +134,7 @@ class input_console:
 			inp = crf.readline('enter opponent #{0} name: '.format(i + 1))
 			name = inp if inp != '' else 'player{}'.format(i)
 			prev = game_state.players[i - 1] if i > 0 else None
-			p = players.player(name , start_money, prev, None)
+			p = players.Player(name , start_money, prev, None)
 			if not user_flag:
 				inp = crf.readline('enter "+" if this player is you: ')
 				user_flag = inp == '+'
@@ -210,7 +210,7 @@ class input_console:
 		else:
 			game_state.stage = poker.stages.nocards
 
-class input_gui:
+class InputGui:
 	def __init__(self):
 		self.side = None
 		self.s = Settings()
@@ -225,7 +225,7 @@ class input_gui:
 		game_state = game_state()
 
 	def contains_button(self, button_text, offset):
-		path = os.path.join(self.path_to_buttons, button_text + '.png')
+		path = os.path.join(self.s.path_to_buttons, button_text + '.png')
 		x1, y1, x2, y2 = self.marker + offset
 		return imf.contains_button(path, (x1 + x2, y1 + y2))
 
@@ -245,7 +245,7 @@ class input_gui:
 			v_index = 1 if card_code[:2] != '10' else 2
 			suit = next(st for st in filter(lambda s: s.startswith(str.lower(card_code[v_index:])), cards.suits) if st)
 			value = card_code[:v_index]
-			result = cards.card(suit, value)
+			result = cards.Card(suit, value)
 		except:
 			#print('ERROR: card input cannot be parsed')
 			pass
@@ -275,13 +275,16 @@ class input_gui:
 		new_player_money = self.get_money(self.player_money_offset)
 		new_opponent_money = self.get_money(self.opp_money_offset)
 		
-		diff_player = game_state.player.money - new_player_money
-		diff_opp = game_state.opponents()[0].money - new_opponent_money
+		try:
+			diff_player = game_state.player.money - new_player_money
+			diff_opp = game_state.opponents()[0].money - new_opponent_money
 
-		game_state.player.money = new_player_money
-		game_state.player.stake += diff_player
-		game_state.opponents()[0].money = new_opponent_money
-		game_state.opponents()[0].stake += diff_opp
+			game_state.player.money = new_player_money
+			game_state.player.stake += diff_player
+			game_state.opponents()[0].money = new_opponent_money
+			game_state.opponents()[0].stake += diff_opp
+		except:
+			print('ERROR: get_stakes caused exception. Possibly, money was not recognized')
 
 		game_state.bank = self.get_bank()
 
@@ -329,6 +332,7 @@ class input_gui:
 				break;
 			time.sleep(0.47)
 		game_state.need_decision = True
+		game_state.can_check = self.contains_button('check', self.s.buttons['check'])
 		print('DEBUG: fold available (or round end)')
 
 	def recognize_opp_cards(self):
@@ -389,8 +393,8 @@ class input_gui:
 		print('marker pos: {}'.format(self.marker))
 		#game_state.blind = self.get_blind_amount()
 
-		left_player = players.player('Left', 0, None, None)
-		right_player = players.player('Right', 0, left_player, left_player)
+		left_player = players.Player('Left', 0, None, None)
+		right_player = players.Player('Right', 0, left_player, left_player)
 		left_player.next = left_player.prev = right_player		
 		game_state.players.append(left_player)
 		game_state.players.append(right_player)

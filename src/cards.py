@@ -8,7 +8,7 @@ suits = (['clubs', 'diamonds', 'hearts', 'spades'])
 
 values = (['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'])
 
-class card:
+class Card:
 	def __init__(self, suit, val):
 		if (suit in suits or str(val) in values):
 			self.suit = suit
@@ -32,7 +32,7 @@ class card:
 
 class deck:
 	def __init__(self):
-		self.cards = [card(suit, val) for suit in suits for val in values]
+		self.cards = [Card(suit, val) for suit in suits for val in values]
 		self.is_shuffled = False
 
 	def shuffle(self):

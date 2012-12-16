@@ -1,7 +1,7 @@
 import strategies
 import cards
 
-class player:
+class Player:
 	def __init__(self, name, money, prev_player, next_player):
 		self.name = name
 		self.money = int(money)
