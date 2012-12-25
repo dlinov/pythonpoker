@@ -16,3 +16,8 @@ class Settings:
 		self.path_to_markers = '..\\img\\markers'
 		self.path_to_buttons = '..\\img\\buttons'
 		self.marker_main_name = 'hand_16_40.png'
+
+if __name__ == '__main__':
+	# tests
+	settings = Settings()
+	print pickle.dumps(settings)
