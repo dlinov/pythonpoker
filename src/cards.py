@@ -4,9 +4,8 @@
 # diamonds = '♦'
 # hearts = '♥'
 # spades = '♠'
-suits = (['clubs', 'diamonds', 'hearts', 'spades'])
-
-values = (['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'])
+suits = (['C', 'D', 'H', 'S'])
+values = (['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'])
 
 class Card:
 	def __init__(self, suit, val):
@@ -30,7 +29,7 @@ class Card:
 		else:
 			return 'none'
 
-class deck:
+class Deck:
 	def __init__(self):
 		self.cards = [Card(suit, val) for suit in suits for val in values]
 		self.is_shuffled = False

@@ -18,7 +18,6 @@ class Manager:
 		if self.game_state.stage == poker.stages.game_start:
 			print('=== game is starting ===')
 			while self.game_state.stage is not poker.stages.game_over:
-				#print('DEBUG: current stage is: {}'.format(self.game_state.stage))
 				self.input.get_state(self.game_state)		# receive current game state
 				actions = self.ai.decide(self.game_state)	# make decision
 				self.output.do(actions)						# act

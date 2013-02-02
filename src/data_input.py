@@ -60,11 +60,7 @@ class InputConsole:
 		while not result:
 			try:
 				card_code = crf.readline('Enter card: ')
-				v_index = 1 if card_code[:2] != '10' else 2
-				# get first elem from enumeration
-				suit = next(st for st in filter(lambda s: s.startswith(str.lower(card_code[v_index:])), cards.suits) if st)
-				value = card_code[:v_index]
-				result = cards.Card(suit, value)
+				result = cards.Card(card_code[1], card_code[0])
 			except:
 				print('ERROR: card input cannot be parsed')
 		return result
@@ -228,9 +224,6 @@ class InputGui:
 		path = os.path.join(self.s.path_to_buttons, button_text + '.png')
 		x1, y1, x2, y2 = self.marker + offset
 		return imf.contains_button(path, (x1 + x2, y1 + y2))
-
-	#def contains_elem(self, sample):
-	#	return imf.contains_elem(sample, None)	
 
 	def get_marker_location(self):
 		path = os.path.join(self.s.path_to_markers, self.s.marker_main_name)
