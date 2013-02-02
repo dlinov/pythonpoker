@@ -1,4 +1,5 @@
 import random
+import itertools
 import cards
 import players
 from collections import namedtuple
@@ -15,7 +16,7 @@ stages = _s('game start', 'no cards', 'preflop', 'flop', 'turn', 'river', 'showd
 
 class Table:
 	def __init__(self):
-		self.deck = cards.deck()
+		self.deck = cards.Deck()
 		self.open_cards = []
 		self.players = []
 		self.bank = 0
@@ -24,7 +25,7 @@ class Table:
 		self.blinds = {'small': None, 'big': None}	# blind player indices
 
 	def take_new_deck(self):
-		self.deck = cards.deck()
+		self.deck = cards.Deck()
 		self.open_cards = []
 		for p in self.players:
 			p.reset_state()
@@ -33,7 +34,7 @@ class Table:
 		self.players.append(player)
 
 	def next_player_for(self, player):
-		'''Returns next player for another one. If he doesn't exist in the collection, returns first element if collection'''
+		'''Returns next player for another one. If he doesn't exist in the collection, returns first element of collection'''
 		n = len(self.players)
 		if n < 1:
 			raise
@@ -176,138 +177,79 @@ class GameState:
 
 def choose_winners(players, river):
 	intermediate_winners = []
-	intermediate_hand = (-1, None)	# (combination, high card)
-	print('DEBUG: choosing winners. Number of active players: {}'.format(len(list(filter(lambda p: not p.fold, players)))))
+	intermediate_hand = (-1)
+	active_players = list(filter(lambda p: not p.fold, players))
+	print('DEBUG: choosing winners. Number of active players: {}'.format(len(active_players)))
 
-	for p in players:	# comparing all player hands
-		if not p.fold:
-			current_hand = recognize_hand(p.cards, river)
-			print('{}\'s hand power: {}'.format(p, current_hand))
-			if current_hand > intermediate_hand:	
-				intermediate_winners = [p]
-				intermediate_hand = current_hand
-			elif current_hand == intermediate_hand:
-				intermediate_winners.append(p)
+	for p in active_players:	# comparing all player hands
+		current_hand = best_hand(p.cards + river)
+		print('{}\'s hand power: {}'.format(p, current_hand))
+		if current_hand > intermediate_hand:	
+			intermediate_winners = [p]
+			intermediate_hand = current_hand
+		elif current_hand == intermediate_hand:
+			intermediate_winners.append(p)
 
 	return intermediate_winners
 
-def recognize_hand(hand, river):
-	cards = hand + river
-	print('DEBUG: hand recognition. Cards:\n{0}'.format(cards))
+def best_hand(hand):
+	"From a 7-card hand, return the best 5 card hand."
+	combs = list(itertools.combinations(hand, 5))
+	combs.sort(reverse = True, key = hand_rank)
+	return combs[0]
 
-	# number of combination. Higher is better. Royal flush is 8, high card is 0
-	combination = 8
+def hand_rank(hand):
+	"Return a value indicating the ranking of a hand."
+	ranks = card_ranks(hand) 
+	if straight(ranks) and flush(hand):
+		return (8, max(ranks))
+	elif kind(4, ranks):
+		return (7, kind(4, ranks), kind(1, ranks))
+	elif kind(3, ranks) and kind(2, ranks):
+		return (6, kind(3, ranks), kind(2, ranks))
+	elif flush(hand):
+		return (5, ranks)
+	elif straight(ranks):
+		return (4, max(ranks))
+	elif kind(3, ranks):
+		return (3, kind(3, ranks), ranks)
+	elif two_pair(ranks):
+		return (2, two_pair(ranks), ranks)
+	elif kind(2, ranks):
+		return (1, kind(2, ranks), ranks)
+	else:
+		return (0, ranks)
 
-	# check_[name of combination] functions return combination order
-	# and 
-	# combination cards set or None if there is no desired combination
-	best_hand = check_straight_flash(cards)
-	if not best_hand:
-		combination -= 1 								# 7
-		best_hand = check_4_of_a_kind(cards)
-		if not best_hand:
-			combination -= 1							# 6
-			best_hand = check_full_house(cards)
-			if not best_hand:
-				combination -= 1						# 5
-				best_hand = check_flush(cards)
-				if not best_hand:
-					combination -= 1					# 4
-					best_hand = check_straight(cards)
-					if not best_hand:
-						combination -= 1				# 3
-						best_hand = check_three_of_a_kind(cards)
-						if not best_hand:
-							combination -= 1			# 2
-							best_hand = check_two_pairs(cards)
-							if not best_hand:
-								combination -= 1		# 1
-								best_hand = check_pair(cards)
-								if not best_hand:
-									combination -= 1	# 0
+def card_ranks(hand):
+	"Return a list of the ranks, sorted with higher first."
+	ranks = ['--23456789TJQKA'.index(r) for r, s in hand]
+	ranks.sort(reverse = True)
+	return [5, 4, 3, 2, 1] if (ranks == [14, 5, 4, 3, 2]) else ranks
 
-	return (combination, best_hand)
+def flush(hand):
+	"Return True if all the cards have the same suit."
+	suits = [s for r,s in hand]
+	return len(set(suits)) == 1
 
-def check_straight_flash(card_set):
+def straight(ranks):
+	"""Return True if the ordered 
+	ranks form a 5-card straight."""
+	return (max(ranks)-min(ranks) == 4) and len(set(ranks)) == 5
+
+def kind(n, ranks):
+	"""Return the first rank that this hand has 
+	exactly n-of-a-kind of. Return None if there 
+	is no n-of-a-kind in the hand."""
+	for r in ranks:
+		if ranks.count(r) == n: return r
 	return None
 
-def check_4_of_a_kind(card_set):
-	values = [card.val for card in card_set]
-
-	for val in cards.values:
-		res_hand = list(filter(lambda v: v == val, values))
-		n = len(res_hand)
-		if n >= 4:
-			return True
-	return None
-
-def check_full_house(card_set):
-	'''three of a kind + pair'''
-	three = check_three_of_a_kind(card_set)
-
-	if three:
-		new_card_set = list(card_set)
-		# for item in three:
-		# 	new_card_set.remove(item)
-		# pair = check_pair(new_card_set)
-		# TODO: return other values
-		# return True if pair else None
-		
-	return None
-
-def check_flush(card_set, flush_len = 5):
-	'''5 or more cards of the same suit'''
-	suits = [card.suit for card in card_set]
-
-	for suit in cards.suits:
-		n = len(list(filter(lambda s: s == suit, suits)))
-		if n >= flush_len:
-			return True
-	return None
-
-def check_straight(card_set):
-	'''5 cards in a row by value'''
-	values = [card.val for card in card_set]
-	check_list = list(cards.values)
-	check_list.insert(0, 'A')
-	n = 0
-
-	for item in check_list:
-		if item in values:
-			n += 1
-			if (n >= 5):
-				return True
-		else:
-			n = 0
-
-	return None
-
-def check_three_of_a_kind(card_set):
-	'''3 cards of the same value'''
-	values = [card.val for card in card_set]
-
-	for val in cards.values:
-		n = len(list(filter(lambda v: v == val, values)))
-		if n >= 3:
-			return True
-	return None
-
-def check_two_pairs(card_set):
-	'''2 pairs'''
-	values = [card.val for card in card_set]
-	pairs_number = 0;
-	for val in cards.values:
-		n = len(list(filter(lambda v: v == val, values)))
-		if n >= 2:
-			pairs_number += 1
-	return pairs_number >= 2
-
-def check_pair(card_set):
-	'''one pair'''
-	values = [card.val for card in card_set]
-
-	for val in cards.values:
-		n = len(list(filter(lambda v: v == val, values)))
-		if n >= 2:
-			return True
-	return None
+def two_pair(ranks):
+	"""If there are two pair here, return the two 
+	ranks of the two pairs, else None."""
+	pair = kind(2, ranks)
+	lowpair = kind(2, list(reversed(ranks)))
+	if pair and lowpair != pair:
+		return (pair, lowpair)
+	else:
+		return None
