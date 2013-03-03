@@ -7,6 +7,7 @@ http://www.pythonware.com/library/pil/handbook/imagegrab.htm
 http://www.pybrain.org/docs/index.html
 http://habrahabr.ru/post/64535/
 http://habrahabr.ru/post/63854/
+http://www.pymvpa.org/
 
 === Ведение статистики (sqlite3?)
 http://www.youtube.com/watch?v=Ll_ufNL5rDA
