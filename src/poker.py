@@ -1,8 +1,9 @@
+from collections import namedtuple
+import itertools
 import random
 import itertools
 import cards
 import players
-from collections import namedtuple
 
 # game_start - the very beginning of the game - we need to know names and start amount of money
 # nocards - no one has cards
@@ -177,19 +178,18 @@ class GameState:
 
 def choose_winners(players, river):
 	intermediate_winners = []
-	intermediate_hand = (-1)
-	active_players = list(filter(lambda p: not p.fold, players))
-	print('DEBUG: choosing winners. Number of active players: {}'.format(len(active_players)))
-
-	for p in active_players:	# comparing all player hands
-		current_hand = best_hand(p.cards + river)
-		print('{}\'s hand power: {}'.format(p, current_hand))
-		if current_hand > intermediate_hand:	
-			intermediate_winners = [p]
-			intermediate_hand = current_hand
-		elif current_hand == intermediate_hand:
-			intermediate_winners.append(p)
-
+	intermediate_hand = (-1, None)	# (combination, high card)
+	print('DEBUG: choosing winners. Number of active players: {}'.format(len(list(filter(lambda p: not p.fold, players)))))
+	for p in players:	# comparing all player hands
+		if not p.fold:
+			# current_hand = recognize_hand(p.cards, river)
+			current_hand = best_hand(p.cards + river)
+			print('{}\'s hand power: {}'.format(p, current_hand))
+			if current_hand > intermediate_hand:	
+				intermediate_winners = [p]
+				intermediate_hand = current_hand
+			elif current_hand == intermediate_hand:
+				intermediate_winners.append(p)
 	return intermediate_winners
 
 def best_hand(hand):
