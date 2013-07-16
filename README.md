@@ -1,0 +1,4 @@
+pythonpoker
+===========
+
+Poker in Python
