@@ -20,4 +20,4 @@ class Settings:
 if __name__ == '__main__':
 	# tests
 	settings = Settings()
-	print pickle.dumps(settings)
+	print(pickle.dumps(settings))

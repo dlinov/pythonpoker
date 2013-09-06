@@ -5,7 +5,7 @@ from PIL import ImageGrab
 from PIL import ImageChops
 from PIL import ImageEnhance
 from PIL import ImageOps
-import cv2
+# import cv2
 import numpy as np
 
 def pil2cv(pil_img):
@@ -27,14 +27,15 @@ def get_screenshot():
 	return ImageGrab.grab()
 
 def get_marker_location(path):
-	scr = pil2cv(get_screenshot())
-	templ = cv2.imread(path)
-	if templ is not None:
-		result = cv2.matchTemplate(scr, templ, cv2.TM_CCOEFF_NORMED)
-		y, x = np.unravel_index(result.argmax(),result.shape)
-		return (x, y)
-	else:
-		raise IOError()
+	raise NotImplementedError('Refactor without opencv')
+	# scr = pil2cv(get_screenshot())
+	# templ = cv2.imread(path)
+	# if templ is not None:
+	# 	result = cv2.matchTemplate(scr, templ, cv2.TM_CCOEFF_NORMED)
+	# 	y, x = np.unravel_index(result.argmax(),result.shape)
+	# 	return (x, y)
+	# else:
+	# 	raise IOError()
 
 def get_card(location):
 	"""
